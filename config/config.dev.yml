@@ -10,3 +10,7 @@ zmq:
     topics:
       - ""
     is_bind: false
+
+http:
+  host: "0.0.0.0"
+  port: 8080

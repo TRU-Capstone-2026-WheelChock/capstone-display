@@ -1,21 +1,18 @@
 from __future__ import annotations
 
+from msg_handler.schemas import DisplayMessage, MotorState
+
 from capstone_display.main import _serialize_received_payload
 
 
-def test_serialize_received_payload_for_dict() -> None:
-    raw = {"sender_id": "center-1"}
+def test_serialize_received_payload() -> None:
+    msg = DisplayMessage(
+        sender_id="center-1",
+        is_override_mode=False,
+        moter_mode=MotorState.FOLDED,
+    )
 
-    assert _serialize_received_payload(raw) == '{"sender_id": "center-1"}'
+    result = _serialize_received_payload(msg)
 
-
-class _DummyMessage:
-    def model_dump(self, *, mode: str = "python") -> dict[str, str]:
-        assert mode == "json"
-        return {"sender_id": "center-1"}
-
-
-def test_serialize_received_payload_for_model_like_object() -> None:
-    raw = _DummyMessage()
-
-    assert _serialize_received_payload(raw) == '{"sender_id": "center-1"}'
+    assert '"sender_id":"center-1"' in result
+    assert '"moter_mode":"FOLDED"' in result

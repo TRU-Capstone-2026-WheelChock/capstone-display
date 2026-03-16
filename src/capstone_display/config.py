@@ -30,9 +30,16 @@ class ZmqConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class HttpConfig:
+    host: str = "0.0.0.0"
+    port: int = 8080
+
+
+@dataclass(frozen=True, slots=True)
 class DisplayConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     zmq: ZmqConfig = field(default_factory=ZmqConfig)
+    http: HttpConfig = field(default_factory=HttpConfig)
 
 
 def resolve_config_path(config_path: str | None = None) -> Path:
@@ -79,6 +86,7 @@ def load_config(config_path: str | None = None) -> DisplayConfig:
     logging_cfg = _expect_mapping(raw_config.get("logging"), label="logging")
     zmq_cfg = _expect_mapping(raw_config.get("zmq"), label="zmq")
     sub_cfg = _expect_mapping(zmq_cfg.get("sub"), label="zmq.sub")
+    http_cfg = _expect_mapping(raw_config.get("http"), label="http")
 
     endpoint = sub_cfg.get("endpoint", "tcp://host.docker.internal:5556")
     if not isinstance(endpoint, str):
@@ -94,6 +102,14 @@ def load_config(config_path: str | None = None) -> DisplayConfig:
 
     topics = _coerce_topics(sub_cfg.get("topics", sub_cfg.get("topic")))
 
+    http_host = http_cfg.get("host", "0.0.0.0")
+    if not isinstance(http_host, str):
+        raise SystemExit("http.host must be a string")
+
+    http_port = http_cfg.get("port", 8080)
+    if not isinstance(http_port, int):
+        raise SystemExit("http.port must be an int")
+
     return DisplayConfig(
         logging=LoggingConfig(level=level.upper()),
         zmq=ZmqConfig(
@@ -103,4 +119,5 @@ def load_config(config_path: str | None = None) -> DisplayConfig:
                 is_bind=is_bind,
             )
         ),
+        http=HttpConfig(host=http_host, port=http_port),
     )

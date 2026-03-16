@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 
 import msg_handler
@@ -9,6 +8,7 @@ import zmq.asyncio
 from msg_handler.schemas import DisplayMessage
 
 from capstone_display.config import DisplayConfig, load_config
+from capstone_display.http_server import serve as http_serve
 
 
 def setup_logger(level_name: str) -> logging.Logger:
@@ -37,15 +37,8 @@ def build_sub_options(
     )
 
 
-def _serialize_received_payload(raw_payload: object) -> str:
-    if hasattr(raw_payload, "model_dump"):
-        model_dump = getattr(raw_payload, "model_dump")
-        return json.dumps(model_dump(mode="json"), ensure_ascii=False)
-    if isinstance(raw_payload, (dict, list)):
-        return json.dumps(raw_payload, ensure_ascii=False, default=str)
-    if isinstance(raw_payload, str):
-        return raw_payload
-    return str(raw_payload)
+def _serialize_received_payload(raw_payload: DisplayMessage) -> str:
+    return raw_payload.model_dump_json()
 
 
 class DisplaySubscriber:
@@ -56,6 +49,7 @@ class DisplaySubscriber:
     ) -> None:
         self.sub_opt = sub_opt
         self.logger = logger or logging.getLogger(__name__)
+        self.latest_json: str | None = None
 
     async def run(self) -> None:
         async with msg_handler.get_async_subscriber(self.sub_opt) as subscriber:
@@ -72,7 +66,8 @@ class DisplaySubscriber:
                         type(raw_payload).__name__,
                     )
                     continue
-                print(_serialize_received_payload(raw_payload), flush=True)
+                self.latest_json = _serialize_received_payload(raw_payload)
+                print(self.latest_json, flush=True)
 
 
 def main(config_path: str | None = None) -> None:
@@ -81,7 +76,10 @@ def main(config_path: str | None = None) -> None:
     context = zmq.asyncio.Context()
     subscriber = DisplaySubscriber(build_sub_options(config, context=context), logger)
     try:
-        asyncio.run(subscriber.run())
+        asyncio.run(asyncio.gather(
+            subscriber.run(),
+            http_serve(config.http.host, config.http.port, lambda: subscriber.latest_json, logger),
+        ))
     finally:
         context.term()
 
