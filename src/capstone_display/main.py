@@ -41,6 +41,22 @@ def _serialize_received_payload(raw_payload: DisplayMessage) -> str:
     return raw_payload.model_dump_json()
 
 
+async def _run_display_services(
+    config: DisplayConfig,
+    subscriber: "DisplaySubscriber",
+    logger: logging.Logger,
+) -> None:
+    await asyncio.gather(
+        subscriber.run(),
+        http_serve(
+            config.http.host,
+            config.http.port,
+            lambda: subscriber.latest_json,
+            logger,
+        ),
+    )
+
+
 class DisplaySubscriber:
     def __init__(
         self,
@@ -76,10 +92,7 @@ def main(config_path: str | None = None) -> None:
     context = zmq.asyncio.Context()
     subscriber = DisplaySubscriber(build_sub_options(config, context=context), logger)
     try:
-        asyncio.run(asyncio.gather(
-            subscriber.run(),
-            http_serve(config.http.host, config.http.port, lambda: subscriber.latest_json, logger),
-        ))
+        asyncio.run(_run_display_services(config, subscriber, logger))
     finally:
         context.term()
 
