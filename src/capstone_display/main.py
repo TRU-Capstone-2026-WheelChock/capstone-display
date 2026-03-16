@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 
-import zmq
+import msg_handler
+import zmq.asyncio
+from msg_handler.schemas import DisplayMessage
 
 from capstone_display.config import DisplayConfig, load_config
 
@@ -19,51 +23,67 @@ def setup_logger(level_name: str) -> logging.Logger:
     return logging.getLogger("capstone_display")
 
 
-def _unwrap_topic_prefixed_payload(raw_message: str) -> str:
-    if raw_message.lstrip().startswith("{"):
-        return raw_message
-
-    parts = raw_message.split(" ", 1)
-    if len(parts) == 2 and parts[1].lstrip().startswith("{"):
-        return parts[1]
-    return raw_message
-
-
-def run_display_subscriber(config: DisplayConfig, logger: logging.Logger) -> None:
-    context = zmq.Context()
-    socket = context.socket(zmq.SUB)
-    socket.setsockopt(zmq.LINGER, 0)
-    socket.setsockopt_string(zmq.SUBSCRIBE, config.zmq.sub.topic)
-
-    if config.zmq.sub.is_bind:
-        socket.bind(config.zmq.sub.endpoint)
-        mode = "bind"
-    else:
-        socket.connect(config.zmq.sub.endpoint)
-        mode = "connect"
-
-    logger.info(
-        "display subscriber is UP endpoint=%s mode=%s topic=%r",
-        config.zmq.sub.endpoint,
-        mode,
-        config.zmq.sub.topic,
+def build_sub_options(
+    config: DisplayConfig,
+    *,
+    context: zmq.asyncio.Context,
+) -> msg_handler.ZmqSubOptions:
+    return msg_handler.ZmqSubOptions(
+        endpoint=config.zmq.sub.endpoint,
+        topics=config.zmq.sub.topics,
+        is_bind=config.zmq.sub.is_bind,
+        expected_type="auto",
+        context=context,
     )
 
-    try:
-        while True:
-            raw_message = socket.recv_string()
-            print(_unwrap_topic_prefixed_payload(raw_message), flush=True)
-    except KeyboardInterrupt:
-        logger.info("display subscriber stopped")
-    finally:
-        socket.close()
-        context.term()
+
+def _serialize_received_payload(raw_payload: object) -> str:
+    if hasattr(raw_payload, "model_dump"):
+        model_dump = getattr(raw_payload, "model_dump")
+        return json.dumps(model_dump(mode="json"), ensure_ascii=False)
+    if isinstance(raw_payload, (dict, list)):
+        return json.dumps(raw_payload, ensure_ascii=False, default=str)
+    if isinstance(raw_payload, str):
+        return raw_payload
+    return str(raw_payload)
+
+
+class DisplaySubscriber:
+    def __init__(
+        self,
+        sub_opt: msg_handler.ZmqSubOptions,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        self.sub_opt = sub_opt
+        self.logger = logger or logging.getLogger(__name__)
+
+    async def run(self) -> None:
+        async with msg_handler.get_async_subscriber(self.sub_opt) as subscriber:
+            self.logger.info(
+                "display subscriber is UP endpoint=%s mode=%s topics=%s",
+                self.sub_opt.endpoint,
+                "bind" if self.sub_opt.is_bind else "connect",
+                self.sub_opt.topics,
+            )
+            async for raw_payload in subscriber:
+                if not isinstance(raw_payload, DisplayMessage):
+                    self.logger.error(
+                        "unexpected message type: expected DisplayMessage, got %s",
+                        type(raw_payload).__name__,
+                    )
+                    continue
+                print(_serialize_received_payload(raw_payload), flush=True)
 
 
 def main(config_path: str | None = None) -> None:
     config = load_config(config_path)
     logger = setup_logger(config.logging.level)
-    run_display_subscriber(config, logger)
+    context = zmq.asyncio.Context()
+    subscriber = DisplaySubscriber(build_sub_options(config, context=context), logger)
+    try:
+        asyncio.run(subscriber.run())
+    finally:
+        context.term()
 
 
 if __name__ == "__main__":

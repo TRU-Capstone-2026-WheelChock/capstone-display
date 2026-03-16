@@ -20,7 +20,7 @@ class LoggingConfig:
 @dataclass(frozen=True, slots=True)
 class SubscriptionConfig:
     endpoint: str = "tcp://host.docker.internal:5556"
-    topic: str = ""
+    topics: list[str] = field(default_factory=lambda: [""])
     is_bind: bool = False
 
 
@@ -52,6 +52,16 @@ def _expect_mapping(value: Any, *, label: str) -> dict[str, Any]:
     return value
 
 
+def _coerce_topics(value: Any) -> list[str]:
+    if value is None:
+        return [""]
+    if isinstance(value, str):
+        return [value]
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise SystemExit("zmq.sub.topics must be a list of strings")
+    return value
+
+
 def load_config(config_path: str | None = None) -> DisplayConfig:
     path = resolve_config_path(config_path)
 
@@ -70,12 +80,6 @@ def load_config(config_path: str | None = None) -> DisplayConfig:
     zmq_cfg = _expect_mapping(raw_config.get("zmq"), label="zmq")
     sub_cfg = _expect_mapping(zmq_cfg.get("sub"), label="zmq.sub")
 
-    topic = sub_cfg.get("topic", "")
-    if topic is None:
-        topic = ""
-    if not isinstance(topic, str):
-        raise SystemExit("zmq.sub.topic must be a string")
-
     endpoint = sub_cfg.get("endpoint", "tcp://host.docker.internal:5556")
     if not isinstance(endpoint, str):
         raise SystemExit("zmq.sub.endpoint must be a string")
@@ -88,12 +92,14 @@ def load_config(config_path: str | None = None) -> DisplayConfig:
     if not isinstance(level, str):
         raise SystemExit("logging.level must be a string")
 
+    topics = _coerce_topics(sub_cfg.get("topics", sub_cfg.get("topic")))
+
     return DisplayConfig(
         logging=LoggingConfig(level=level.upper()),
         zmq=ZmqConfig(
             sub=SubscriptionConfig(
                 endpoint=endpoint,
-                topic=topic,
+                topics=topics,
                 is_bind=is_bind,
             )
         ),

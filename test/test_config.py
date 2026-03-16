@@ -22,7 +22,8 @@ logging:
 zmq:
   sub:
     endpoint: "tcp://center:5556"
-    topic: ""
+    topics:
+      - ""
     is_bind: false
 """.strip(),
         encoding="utf-8",
@@ -33,5 +34,5 @@ zmq:
 
     assert config.logging.level == "DEBUG"
     assert config.zmq.sub.endpoint == "tcp://center:5556"
-    assert config.zmq.sub.topic == ""
+    assert config.zmq.sub.topics == [""]
     assert config.zmq.sub.is_bind is False

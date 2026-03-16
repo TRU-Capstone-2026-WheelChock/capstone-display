@@ -7,5 +7,6 @@ logging:
 zmq:
   sub:
     endpoint: "tcp://center:5556"
-    topic: ""
+    topics:
+      - ""
     is_bind: false
