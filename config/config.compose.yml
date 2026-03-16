@@ -1,0 +1,11 @@
+app:
+  name: capstone-display
+
+logging:
+  level: INFO
+
+zmq:
+  sub:
+    endpoint: "tcp://center:5556"
+    topic: ""
+    is_bind: false

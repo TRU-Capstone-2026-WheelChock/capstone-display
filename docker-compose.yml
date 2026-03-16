@@ -1,0 +1,35 @@
+name: capstone-display-dev
+
+x-dev-base: &dev-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+    args:
+      USERNAME: dev
+      UID: 1000
+      GID: 1000
+  environment: &common-env
+    DISPLAY_CONFIG_PATH: ${DISPLAY_CONFIG_PATH:-/app/config/config.yml}
+    PYTHONPATH: /app/src
+  volumes:
+    - .:/app:cached
+    - poetry-venv:/app/.venv
+
+x-runtime-base: &runtime-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: *common-env
+
+services:
+  display-dev:
+    <<: *dev-base
+    profiles: ["dev"]
+    command: sleep infinity
+
+  display:
+    <<: *runtime-base
+    command: python -m capstone_display.main
+
+volumes:
+  poetry-venv:

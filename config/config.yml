@@ -1,0 +1,11 @@
+app:
+  name: capstone-display
+
+logging:
+  level: INFO
+
+zmq:
+  sub:
+    endpoint: "tcp://host.docker.internal:5556"
+    topic: ""
+    is_bind: false
