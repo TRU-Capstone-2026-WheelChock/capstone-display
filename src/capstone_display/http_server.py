@@ -9,240 +9,231 @@ _HTML = """\
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>HDAWCS Live Display</title>
+<meta charset="UTF-8">
+<title>HDAWCS Live Display</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-    /* HEADER */
-    header {
-      width: 100%;
-      background-color: #48b39c; /* lighter teal */
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 110px;
-    }
+.page-container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-    .header-title {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      flex: 1;
-    }
+header {
+  width: 100%;
+  background-color: #3cb8ad;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 110px;
+}
 
-    .header-title h1 {
-      margin: 0;
-      font-size: 2.1em;
-      font-weight: 700;
-      color: white;
-    }
+.header-title {
+  display: flex;
+  flex-direction: column;
+}
 
-    .header-title h2 {
-      margin: 5px 0 0 0;
-      font-size: 0.75em;
-      font-weight: 500;
-      color: #000;
-      line-height: 1.2;
-      opacity: 0.85;
-    }
+.header-title h1 {
+  margin: 0;
+  font-size: 2.1em;
+  font-weight: 700;
+  color: white;
+}
 
-    .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 5px;
-      margin-left: 20px;
-    }
+.header-title h2 {
+  margin: 5px 0 0 0;
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #000;
+  opacity: 0.85;
+}
 
-    .header-right img {
-      height: 40px;
-      object-fit: contain;
-    }
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
 
-    /* MAIN CONTENT */
-    main {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
-    }
+.header-right img {
+  height: 40px;
+  object-fit: contain;
+}
 
-    .sensor-card {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: auto;
-      min-width: 120px;
-    }
+main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
 
-    .sensor-title {
-      font-weight: bold;
-      margin-bottom: 8px;
-      font-size: 1.1em;
-      color: #264653;
-      text-align: center;
-    }
+.sensor-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    .info-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 6px;
-    }
+.sensor-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  color: #264653;
+}
 
-    .label {
-      font-weight: bold;
-      font-size: 0.9em;
-    }
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
 
-    .value-box {
-      padding: 4px 10px;
-      border-radius: 5px;
-      font-size: 0.9em;
-      text-align: center;
-      min-width: 80px;
-    }
+.label {
+  font-weight: bold;
+  font-size: 0.9em;
+}
 
-    .human-main {
-      font-size: 1.1em;
-      font-weight: bold;
-      padding: 6px 12px;
-    }
+.value-box {
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.9em;
+  min-width: 80px;
+  text-align: center;
+}
 
-    /* COLORS */
-    .active-true { background-color: #5dade2; color: #0b3c5d; }
-    .active-false { background-color: #5a5a5a; color: #ffffff; }
-    .human-true { background-color: #58d68d; color: #145a32; }
-    .human-false { background-color: #ec7063; color: #641e16; }
+.human-main {
+  font-size: 1.1em;
+  font-weight: bold;
+  padding: 6px 12px;
+}
 
-    /* MAJORITY BOX */
-    .majority-box {
-      max-width: 400px;
-      width: auto;
-      margin: 20px auto 40px auto;
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 15px 20px;
-      font-size: 1.2em;
-      font-weight: bold;
-      border: 3px solid #ccc;
-      text-align: center;
-    }
+.active-true { background-color: #5dade2; color: #0b3c5d; }
+.human-true { background-color: #58d68d; color: #145a32; }
+.human-false { background-color: #ec7063; color: #641e16; }
 
-    .majority-true { color: #145a32; border-color: #58d68d; }
-    .majority-false { color: #641e16; border-color: #ec7063; }
+.majority-box {
+  max-width: 400px;
+  width: fit-content;
+  margin: 20px auto;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-size: 1.2em;
+  font-weight: bold;
+  border: 3px solid #ccc;
+  text-align: center;
+  display: none;
+}
 
-    /* FOOTER */
-    footer {
-      width: 100%;
-      background-color: #264653;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center; /* vertical alignment */
-      gap: 20px;
-      padding: 20px;
-      font-size: 1.2em;
-      margin-top: auto;
-    }
+.majority-true { color: #145a32; border-color: #58d68d; }
+.majority-false { color: #641e16; border-color: #ec7063; }
 
-    .chock-label { font-weight: bold; }
+footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  font-size: 1.2em;
+  background-color: #264653;
+  color: #fff;
+}
 
-    .chock-value {
-      padding: 6px 12px;
-      border-radius: 5px;
-      min-width: 80px;
-      text-align: center;
-    }
+.chock-label { font-weight: bold; }
 
-    .chock-idle { background-color: #5dade2; color: #0b3c5d; }
-    .chock-deployed { background-color: #58d68d; color: #145a32; }
-    .chock-moving { background-color: #ec7063; color: #641e16; }
+.chock-value {
+  padding: 6px 12px;
+  border-radius: 5px;
+  background-color: #5dade2; /* always blue */
+  color: #ffffff;
+  font-weight: bold;
+}
 
-    .clock {
-      font-family: monospace;
-      background-color: #e9c46a;
-      padding: 10px 20px;
-      border-radius: 5px;
-    }
+.override-box {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: bold;
+  color: #fff;
+  min-width: 80px;
+  text-align: center;
+}
 
-    /* DEFAULT SENSOR MESSAGE */
-    .no-sensors {
-      font-size: 1em;
-      text-align: center;
-      padding: 20px;
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: inline-flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+.override-true { background-color: #58d68d; }
+.override-false { background-color: #ec7063; }
 
-    .no-sensors .line1 { font-size: 1.2em; font-weight: bold; }
-    .no-sensors .line2 { font-size: 1em; }
-  </style>
+.clock {
+  font-family: monospace;
+  background-color: #e9c46a;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+</style>
 </head>
 
 <body>
+<div class="page-container">
+
 <header>
   <div class="header-title">
     <h1>HDAWCS Live Display</h1>
     <h2>Human-Detecting Automatic Wheel Chock Deployment System</h2>
   </div>
-
   <div class="header-right">
     <img src="https://www.tru.ca/__shared/assets/TRU_Logo_Horizontal_RGB-reversed37472.png">
     <img src="https://ci3.googleusercontent.com/meips/ADKq_NbxZFXzxut7A-r0DknIYAoEyzFjnyvsn8Kzj54VluKVUZEDn2FkbyIswtAYpZq2EhuTtN-UKdwbGnFegHmKElzCbLIDeh3dWcgSlHKXg3vo1VYv2VbILA=s0-d-e1-ft#https://arctechnologies.ca/assets/img/ArcNewLogoTransparentv1.png">
   </div>
 </header>
 
-<main id="sensors-container">
-  <div class="no-sensors" id="no-sensors-msg">
-    <span class="line1">No sensors connected</span>
-    <span class="line2">Please connect sensor(s) to enable the HDAWCS</span>
-  </div>
-</main>
+<main id="sensors-container"></main>
 
-<div id="majority-box" class="majority-box">
-  Majority Vote: Unknown
-</div>
+<div id="majority-box" class="majority-box">Majority Vote: Unknown</div>
 
 <footer>
   <div class="info-row">
     <span class="chock-label">Chock Status:</span>
-    <span class="chock-value chock-idle" id="chock-status">Idle</span>
+    <span class="chock-value" id="chock-status">Idle</span>
   </div>
-  <div class="clock" id="clock">--:--:--</div>
+
+  <div class="info-row">
+    <span class="chock-label">Override Mode:</span>
+    <span id="override-status" class="override-box override-false">FALSE</span>
+  </div>
+
+  <div class="clock" id="clock">--</div>
 </footer>
 
+</div>
+
 <script>
-function updateClock() {
-  document.getElementById("clock").textContent = new Date().toLocaleTimeString();
+function updateClock(timestamp) {
+  if(timestamp){
+    document.getElementById("clock").textContent = timestamp;
+  }
 }
-setInterval(updateClock, 1000);
-updateClock();
 
 async function updateSensors() {
   try {
@@ -252,59 +243,38 @@ async function updateSensors() {
       const container = document.getElementById("sensors-container");
       container.innerHTML = "";
 
+      const sensorDict = data.sensor_display_dict || {};
+      const sensorKeys = Object.keys(sensorDict);
       let humanCount = 0;
-      let totalSensors = 0;
 
-      for (const [key, value] of Object.entries(data)) {
-        if (key === "chockStatus") {
-          const chockEl = document.getElementById("chock-status");
-          chockEl.textContent = value;
-          chockEl.classList.remove("chock-idle","chock-deployed","chock-moving");
-
-          if(value.toLowerCase() === "idle") chockEl.classList.add("chock-idle");
-          else if(value.toLowerCase() === "deployed") chockEl.classList.add("chock-deployed");
-          else if(value.toLowerCase() === "moving") chockEl.classList.add("chock-moving");
-
-          continue;
-        }
-
-        totalSensors++;
-        if (value.human === true) humanCount++;
+      for(const key of sensorKeys){
+        const sensor = sensorDict[key];
+        if(sensor.is_there_human) humanCount++;
 
         const card = document.createElement("div");
         card.className = "sensor-card";
 
         const title = document.createElement("div");
         title.className = "sensor-title";
-        title.textContent = key;
+        title.textContent = sensor.sensor_name;
 
         const statusRow = document.createElement("div");
         statusRow.className = "info-row";
 
-        const statusLabel = document.createElement("span");
-        statusLabel.className = "label";
-        statusLabel.textContent = "Status:";
-
-        const statusValue = document.createElement("span");
-        statusValue.className = "value-box " + (value.active ? "active-true" : "active-false");
-        statusValue.textContent = value.active ? "Active" : "Inactive";
-
-        statusRow.appendChild(statusLabel);
-        statusRow.appendChild(statusValue);
+        statusRow.innerHTML = `
+          <span class="label">Status:</span>
+          <span class="value-box active-true">Active</span>
+        `;
 
         const humanRow = document.createElement("div");
         humanRow.className = "info-row";
 
-        const humanLabel = document.createElement("span");
-        humanLabel.className = "label";
-        humanLabel.textContent = "Human:";
-
-        const humanValue = document.createElement("span");
-        humanValue.className = "value-box human-main " + (value.human ? "human-true" : "human-false");
-        humanValue.textContent = value.human ? "Detected" : "Clear";
-
-        humanRow.appendChild(humanLabel);
-        humanRow.appendChild(humanValue);
+        humanRow.innerHTML = `
+          <span class="label">Human:</span>
+          <span class="value-box human-main ${sensor.is_there_human ? "human-true" : "human-false"}">
+            ${sensor.is_there_human ? "Detected" : "Clear"}
+          </span>
+        `;
 
         card.appendChild(title);
         card.appendChild(statusRow);
@@ -313,26 +283,40 @@ async function updateSensors() {
         container.appendChild(card);
       }
 
-      // Show "No sensors" default message if no sensors detected
-      if (totalSensors === 0) {
-        container.innerHTML = `
-          <div class="no-sensors">
-            <span class="line1">No sensors connected</span>
-            <span class="line2">Please connect sensor(s) to enable the HDAWCS</span>
-          </div>`;
-        document.getElementById("majority-box").style.display = "none"; // hide majority box
+      // Chock status (always styled blue)
+      document.getElementById("chock-status").textContent = data.moter_mode || "Unknown";
+
+      // Override
+      const overrideEl = document.getElementById("override-status");
+      overrideEl.textContent = data.is_override_mode ? "TRUE" : "FALSE";
+      overrideEl.className = "override-box " + (data.is_override_mode ? "override-true" : "override-false");
+
+      // Timestamp (no flicker)
+      updateClock(data.timestamp);
+
+      // Majority vote
+      const majorityBox = document.getElementById("majority-box");
+      if(sensorKeys.length === 0){
+        majorityBox.style.display = "none";
       } else {
-        document.getElementById("majority-box").style.display = "block";
+        majorityBox.style.display = "block";
+
+        if(humanCount > sensorKeys.length/2){
+          majorityBox.textContent = "Majority Vote: DETECTED";
+          majorityBox.className = "majority-box majority-true";
+        }
+        else if(humanCount < sensorKeys.length/2){
+          majorityBox.textContent = "Majority Vote: CLEAR";
+          majorityBox.className = "majority-box majority-false";
+        }
+        else {
+          majorityBox.textContent = "Majority Vote: Unknown";
+          majorityBox.className = "majority-box";
+        }
       }
 
-      const majorityBox = document.getElementById("majority-box");
-      const majority = humanCount > totalSensors / 2;
-
-      majorityBox.textContent = `Majority Vote: ${majority ? "HUMAN DETECTED" : "CLEAR"}`;
-      majorityBox.classList.remove("majority-true", "majority-false");
-      majorityBox.classList.add(majority ? "majority-true" : "majority-false");
     }
-  } catch (err) {
+  } catch(err){
     console.error("Failed to fetch state:", err);
   }
 }
